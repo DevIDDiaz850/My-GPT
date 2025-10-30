@@ -1,65 +1,43 @@
-# 💬 Proyecto: Modelo de Chat de IA
+## 🧠 Fases para Generar un GPT Entrenado
 
-## 🌟 Descripción General
+El proceso de generar (o crear) un modelo GPT completo y funcional se divide en: **1. Preprocesamiento**, **2. Entrenamiento**, y **3. Almacenamiento y Uso (Inferencia)**.
 
-Este repositorio contiene la implementación y el código fuente de un **Modelo de Lenguaje Grande (LLM)** diseñado para interactuar mediante chat. El objetivo principal es ofrecer respuestas coherentes y contextualmente relevantes a consultas de lenguaje natural, sirviendo como una base para aplicaciones de asistente virtual, *bots* de soporte o herramientas de procesamiento de lenguaje.
+### 1. 📂 El *Pipeline* del Preprocesamiento (Tokenización)
 
-## 🐍 Tecnología Principal: Python
+Antes de que el modelo pueda "aprender", debe entender el texto. Esto se hace convirtiendo las palabras en números, un proceso llamado **tokenización**.
 
-El corazón de este modelo y todo su *pipeline* de desarrollo se construye sobre **Python**, el lenguaje líder en el campo de la Inteligencia Artificial y el *Machine Learning*.
+Los archivos en tu carpeta que manejan esta fase son:
 
-| Componente | Herramientas Clave en Python | Propósito |
-| :--- | :--- | :--- |
-| **Núcleo del Modelo** | **PyTorch** o **TensorFlow/Keras** | Definición de la arquitectura neuronal (ej. Transformer) y entrenamiento del modelo. |
-| **Preprocesamiento** | **NLTK** / **SpaCy** / **Hugging Face** | Tokenización, limpieza y vectorización de datos de texto. |
-| **API/Servicio** | **Flask** o **FastAPI** | Creación de *endpoints* RESTful para la comunicación con la interfaz de usuario. |
-| **Manejo de Datos** | **Pandas** / **NumPy** | Gestión y manipulación eficiente de conjuntos de datos de entrenamiento. |
+* **`tokenizer_config`**: Archivo de configuración que guarda los ajustes de cómo se debe tokenizar el texto (ej. si se deben añadir *tokens* especiales, el tamaño del vocabulario, etc.).
+* **`vocab`**: El **vocabulario** completo. Es un diccionario que asigna un ID numérico único a cada palabra, subpalabra o símbolo que el modelo conoce.
+* **`special_tokens_map`**: Indica los ID numéricos para *tokens* específicos que tienen un significado especial (como `[CLS]` o `[SEP]`, o el *token* de fin de secuencia `[EOS]`).
+* **`merges` (para modelos BPE/WordPiece)**: Un archivo de texto que contiene las reglas sobre cómo combinar caracteres individuales en *tokens* más largos (ej. cómo combinar 't', 'o', 'k', 'e', 'n' en 'token').
 
-## 🚀 Cómo Empezar
+### 2. 💪 La Fase de Entrenamiento y Aprendizaje
 
-Sigue estos pasos para poner en marcha el proyecto en tu entorno local.
+Esta es la fase donde el modelo consume una gran cantidad de texto para ajustar sus pesos internos (tensores).
 
-### 1\. Clonar el Repositorio
+* **Proceso:** El modelo lee el texto, predice la siguiente palabra y ajusta sus **tensores** para minimizar el error en esa predicción. Este proceso se repite millones de veces.
+* **El Resultado del Aprendizaje:** Cada ajuste exitoso a los **tensores** representa una porción de conocimiento que el modelo ha adquirido sobre gramática, contexto, y hechos.
 
-```bash
-git clone https://github.com/tu-usuario/nombre-del-repo.git
-cd nombre-del-repo
-```
+### 3. 💾 El Resultado Final (Archivos Guardados)
 
-### 2\. Configurar el Entorno
+Una vez que el entrenamiento termina, se detiene el proceso y se guardan todos los elementos necesarios para que el modelo funcione:
 
-Recomendamos usar un entorno virtual para gestionar las dependencias:
+* **`model.safetensors` (El Cerebro del GPT):**
+    * Este archivo es el **producto directo del entrenamiento**. Contiene los **tensores** finales y optimizados que forman la red neuronal del modelo.
+    * Con **486 MB** en tu ejemplo, es el archivo más grande porque almacena la inmensa cantidad de números que constituyen el conocimiento del GPT. **Sin este archivo, el modelo es solo una estructura vacía.**
+* **`config`**: Contiene la **arquitectura** exacta del modelo (ej. cuántas capas de atención tiene, cuántas cabezas de atención, el tamaño de la capa oculta, etc.). Es el "plano" de cómo se debe construir la red neuronal para cargar los pesos de `model.safetensors`.
+* **`generation_config`**: Guarda los parámetros que se usarán cuando el modelo empiece a generar texto, como la temperatura (*temperature*), el *top-p*, y la longitud máxima de la secuencia.
 
-```bash
-# Crear el entorno virtual (usando Python)
-python3 -m venv venv
-# Activar el entorno
-source venv/bin/activate  # En Linux/macOS
-.\venv\Scripts\activate   # En Windows
-```
+---
 
-### 3\. Instalar Dependencias
+## 🛠️ Lógica de Uso del GPT Entrenado
 
-Todas las bibliotecas de Python necesarias se encuentran en el archivo `requirements.txt`.
+Para que el GPT funcione (proceso llamado **Inferencia**), la lógica es la siguiente:
 
-```bash
-pip install -r requirements.txt
-```
+1.  **Cargar la Arquitectura:** Leer `config` para saber cómo construir la red.
+2.  **Cargar el Conocimiento:** Cargar los pesos desde **`model.safetensors`** en la arquitectura.
+3.  **Cargar el Idioma:** Cargar el `tokenizer_config`, `vocab`, `merges` y `special_tokens_map` para que el modelo entienda la entrada de texto y pueda generar una salida de texto legible.
 
-### 4\. Ejecutar el Servidor de Chat
-
-Ejecuta el script principal de Python para iniciar la API del modelo:
-
-```bash
-python3 app.py
-```
-
-El servidor estará disponible en `http://localhost:5000` (o el puerto configurado).
-
-## 🗂️ Estructura del Proyecto
-
-  * `app.py`: El punto de entrada de la aplicación y la lógica del servidor (usando Flask/FastAPI).
-  * `model/`: Contiene el código de la arquitectura y el modelo pre-entrenado (`model.pt` o similar).
-  * `data/`: Conjuntos de datos utilizados para el entrenamiento y la validación.
-  * `utils.py`: Funciones de utilidad para preprocesamiento, tokenización y manejo de datos.
-  * `requirements.txt`: Lista de todas las dependencias de Python.
+El conjunto de todos estos archivos es tu **"GPT entrenado"**.
